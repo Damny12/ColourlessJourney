@@ -7,6 +7,7 @@ baseMovementSpeed = 1
 inAirMovementSpeedMultiplier = 1.3
 
 baseKoyoteFrames = 10
+baseBufferFrames = 10
 
 baseJumpHeight = -10
 
@@ -22,6 +23,7 @@ horizontalVelocity = 0
 verticalVelocity = 0
 
 currentKoyoteFrames = baseKoyoteFrames
+currentInputBufferFrames = 0
 
 movementSpeed = baseMovementSpeed
 

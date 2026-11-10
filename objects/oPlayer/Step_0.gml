@@ -15,6 +15,12 @@ var movementSpeed = deltaTimeMultiplier * baseMovementSpeed
 
 var horizontalFriction = baseHorizontalFriction
 
+var bufferedJump = (keyboard_check_pressed(vk_space) or (keyboard_lastkey == vk_space and currentInputBufferFrames > 0))
+
+if (keyboard_check_pressed(vk_anykey)){
+	currentInputBufferFrames = baseBufferFrames
+}
+
 if (wallJumped){
 	horizontalFriction = 1.01
 	movementDirection = 0
@@ -25,9 +31,9 @@ if (!place_meeting(x, y + 16, ground)){
 }
 
 if (savedMovementDirection == 1){
-	targetCameraX = x - cameraWidth/4
+	targetCameraX = x - cameraWidth/3
 }else{
-	targetCameraX = x - cameraWidth/4 * 3
+	targetCameraX = x - cameraWidth/3 * 2
 }
 
 targetCameraY = y - cameraHeight/2
@@ -46,7 +52,7 @@ horizontalVelocity += movementSpeed * movementDirection
 horizontalVelocity /= horizontalFriction
 
 if (!place_meeting(x, y, ground)){
-	verticalVelocity += gravityStrength
+	verticalVelocity += gravityStrength * deltaTimeMultiplier
 }
 
 if (abs(verticalVelocity) > abs(terminalverticalVelocity)){
@@ -78,6 +84,11 @@ if (place_meeting(x - horizontalVelocity, y, ground)){
 	while (place_meeting(x - horizontalVelocity, y, ground)) {
 		y -= 0.5 * sign(verticalVelocity)
 	}
+	
+	if (sign(verticalVelocity) == 1){
+		currentKoyoteFrames = baseKoyoteFrames
+	}
+	
 	verticalVelocity = 0
 	
 	wallJumped = false
@@ -94,15 +105,19 @@ if (place_meeting(x, y, ground)){
 	visualAngle = 0
 }
 
-if (keyboard_check(vk_space) and position_meeting(x, y, ground)){
+if (bufferedJump and (position_meeting(x, y, ground) or currentKoyoteFrames > 0)){
 	verticalVelocity = baseJumpHeight
 	repeat (16) {
 		instance_create_depth(x + random_range(-35, 35), y + random_range(-15, -5), 0, oSmoke)
 	}
+	
+	currentKoyoteFrames = 0
+	
+	keyboard_clear(vk_space)
 }
 
-if (keyboard_check_pressed(vk_space) and place_meeting(x + 16 * savedMovementDirection, y, ground) and !wallJumped and verticalVelocity != 0){
-	verticalVelocity = baseJumpHeight
+if (bufferedJump and place_meeting(x + 16 * savedMovementDirection, y, ground) and !wallJumped and verticalVelocity != 0){
+	verticalVelocity = baseJumpHeight * 1.1
 	horizontalVelocity = -8 * savedMovementDirection
 	savedMovementDirection *= -1
 	repeat (16) {
@@ -114,5 +129,8 @@ if (keyboard_check_pressed(vk_space) and place_meeting(x + 16 * savedMovementDir
 
 wobbleProgress += horizontalVelocity
 
+currentKoyoteFrames -= deltaTimeMultiplier
+currentInputBufferFrames -= deltaTimeMultiplier
+
 //camera controls
-camera_set_view_pos(camera, lerp(camera_get_view_x(camera), targetCameraX, 0.1) , lerp(camera_get_view_y(camera), targetCameraY, 0.1))
+camera_set_view_pos(camera, lerp(camera_get_view_x(camera), targetCameraX, 0.05) , lerp(camera_get_view_y(camera), targetCameraY, 0.1))
