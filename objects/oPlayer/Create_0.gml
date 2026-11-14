@@ -7,9 +7,11 @@ baseMovementSpeed = 1
 inAirMovementSpeedMultiplier = 1.3
 
 baseKoyoteFrames = 10
-baseBufferFrames = 10
+baseBufferFrames = 6
 
 baseJumpHeight = -10
+wallJumpHeightMultiplier = 1.2
+wallJumpHorizontalSpeed = 10
 
 baseHorizontalFriction = 1.2
 stoppingThreshold = 0.6
@@ -37,5 +39,15 @@ visualAngle = 0
 savedMovementDirection = 1
 
 wallJumped = false
+wallJumpPhysics = false
 
-targetCameraX = 0
+var camera = view_camera[0]
+var cameraWidth = camera_get_view_width(camera)
+var cameraHeight = camera_get_view_height(camera)
+
+targetCameraX = x - cameraWidth/3
+targetCameraY = y - cameraHeight/2
+
+camera_set_view_pos(camera, targetCameraX, targetCameraY)
+
+show_debug_log(true)
