@@ -16,17 +16,36 @@ var movementSpeed = baseMovementSpeed * deltaTimeMultiplier
 var horizontalFriction = baseHorizontalFriction
 
 var bufferedJump = (keyboard_check_pressed(vk_space) or (keyboard_lastkey == vk_space and currentInputBufferFrames > 0)) or (keyboard_check_pressed(vk_up) or (keyboard_lastkey == vk_up and currentInputBufferFrames > 0))
-
+var wallJumpedThisFrame = wallJumped
 if (keyboard_check_pressed(vk_anykey)){
 	currentInputBufferFrames = baseBufferFrames
+	
+	started = true
+}
+
+if (x >= 3488 and y >= 1780 and started){
+	show_debug_message(frames/60)
+	started = false
+	show_debug_log(true)
+}
+
+if (started){
+	frames += deltaTimeMultiplier
+}
+
+if (keyboard_check_pressed(ord("R"))){
+	game_restart()
 }
 
 if (wallJumpPhysics){
-	horizontalFriction = 1.01
+	horizontalFriction = wallJumpFriction
 	movementDirection = 0
+	terminalVerticalVelocity = baseTerminalVerticalVelocity * 3
 	repeat (3) {
 		instance_create_depth(x + random_range(-10, 10), y + random_range(-10, 10), 0, oSmoke)
 	}
+}else{
+	terminalVerticalVelocity = baseTerminalVerticalVelocity
 }
 
 if (!place_meeting(x, y + 16, ground)){
@@ -39,7 +58,7 @@ if (savedMovementDirection == 1){
 	targetCameraX = x - cameraWidth/3 * 2
 }
 
-targetCameraY = y - cameraHeight/2
+targetCameraY = y - cameraHeight/2 + verticalVelocity
 
 if (movementDirection != 0){
 	savedMovementDirection = movementDirection
@@ -52,64 +71,118 @@ if (abs(visualXScale - savedMovementDirection) <= 0.1){
 }
 
 horizontalVelocity += movementSpeed * movementDirection
-horizontalVelocity /= horizontalFriction * deltaTimeMultiplier
+horizontalVelocity /= power(horizontalFriction, (delta_time / game_get_speed(gamespeed_microseconds)))
 
 if (!place_meeting(x, y, ground)){
 	verticalVelocity += gravityStrength * deltaTimeMultiplier
 }
 
-if (abs(verticalVelocity) > abs(terminalverticalVelocity)){
-	verticalVelocity = lerp(verticalVelocity, terminalverticalVelocity, 0.05 * deltaTimeMultiplier)
+if (abs(verticalVelocity) > abs(terminalVerticalVelocity)){
+	verticalVelocity = lerp(verticalVelocity, terminalVerticalVelocity, 0.05 * deltaTimeMultiplier)
 	instance_create_depth(x + random_range(-2, 2), y, 0, oSmoke)
 }
 
 if (abs(horizontalVelocity) <= stoppingThreshold){
 	horizontalVelocity = 0
 	
-	visualAngle = lerp(visualAngle, 0, 0.1 * deltaTimeMultiplier)
-	wobbleProgress = visualAngle
-} else {
-	var newAngle = sin(wobbleProgress / wobbleSpeed) * maxWobbleAngle
-	if (abs(newAngle) < abs(visualAngle)){
-		totalWobbles += 1
-		if (totalWobbles % 2 == 0){
-			instance_create_depth(x + random_range(-5, 5), y + random_range(-15, -5), 0, oSmoke)	
-		}
+	if (gravityStrength * deltaTimeMultiplier == verticalVelocity){
+		visualAngle = lerp(visualAngle, 0, 0.1 * deltaTimeMultiplier)
+		wobbleProgress = visualAngle
 	}
 	
-	visualAngle = newAngle
+} else {
+	if (gravityStrength * deltaTimeMultiplier == verticalVelocity){
+		var newAngle = sin(wobbleProgress / wobbleSpeed) * maxWobbleAngle
+		if (abs(newAngle) < abs(visualAngle)){
+			totalWobbles += 1
+			if (totalWobbles % 2 == 0){
+				instance_create_depth(x + random_range(-5, 5), y + random_range(-15, -5), 0, oSmoke)	
+			}
+		}
+		
+		visualAngle = newAngle
+	}
 }
 
-x += horizontalVelocity
 y += verticalVelocity
 
-for (var i = 0; i < abs(verticalVelocity); i++) {
+var savedVerticalVelocity = verticalVelocity
+var precision = 0.5
+
+for (var i = 0; i < abs(verticalVelocity); i+=precision) {
 	if (place_meeting(x, y - i * sign(verticalVelocity), ground)){
+		y -= verticalVelocity
+		
 		if (sign(verticalVelocity) == 1){
 			currentKoyoteFrames = baseKoyoteFrames
 		}
 		
-		y -= verticalVelocity + 0.01
-		
 		verticalVelocity = 0
 		
-		wallJumped = false
-		wallJumpPhysics = false
+		if (sign(savedVerticalVelocity) == 1){
+			wallJumped = false
+			wallJumpPhysics = false
+		}
+		
+		if (sign(savedVerticalVelocity) == -1){
+			show_debug_message("i hit something above me")
+			
+			if (wallJumpPhysics){
+				verticalVelocity = savedVerticalVelocity * wallJumpHeadhitMultiplier
+				
+				show_debug_message($"i hit the roof at {savedVerticalVelocity} and now i am going {verticalVelocity}")
+			}
+		}
 	}
 }
 
-for (var i = 0; i < abs(horizontalVelocity); i++) {
-	if (place_meeting(x - i * sign(horizontalVelocity), y, ground)){
+if (savedVerticalVelocity != verticalVelocity){
+	savedVerticalVelocity *= 2
+}
+
+x += horizontalVelocity
+
+var savedHorizontalVelocity = horizontalVelocity
+
+for (var i = 0; i <= abs(horizontalVelocity); i+=precision) {
+	if (place_meeting(x - i * sign(horizontalVelocity), y - savedVerticalVelocity, ground)){
 		x -= horizontalVelocity
+		
+		show_debug_message($"i hit a wall while going at {horizontalVelocity}")
 		
 		horizontalVelocity = 0
 		
-		wallJumped = false
+		if (wallJumpPhysics){
+			horizontalVelocity = savedHorizontalVelocity * wallBumpHorizontalMultiplier
+			savedMovementDirection *= -1
+			
+			show_debug_message($"i bumped a wall at {savedHorizontalVelocity}. now im going at {horizontalVelocity}")
+			
+			verticalVelocity = wallBumpVerticalSpeed
+			
+			x += horizontalVelocity
+			
+			bufferedJump = false
+		}
+		
+		if (savedHorizontalVelocity == 0){
+			if (directionStuckInWall != NaN){
+				directionStuckInWall = savedMovementDirection
+				
+				show_debug_message($"oh, no! i'm stuck in a wall while facing in the {directionStuckInWall} directon")
+			}
+			
+			show_debug_message($"i am moving myself out of this wall.")
+			while (place_meeting(x, y, ground)) {
+				x -= directionStuckInWall
+			}
+			
+			show_debug_message($"i think i am out of the wall") 
+			directionStuckInWall = NaN
+		}
+		
 		wobbleProgress = 0
-		visualAngle = 0
-		
-		show_debug_message("was in wall. pushed out")
-		
+		visualAngle = 0 
 	}
 }
 
@@ -119,17 +192,24 @@ if (bufferedJump and (position_meeting(x, y, ground) or currentKoyoteFrames > 0)
 		instance_create_depth(x + random_range(-35, 35), y + random_range(-15, -5), 0, oSmoke)
 	}
 	
+	if (wallJumpedThisFrame){
+		verticalVelocity *= highJumpVerticalMultiplier
+		horizontalVelocity *= highJumpHorizontalMultiplier
+	}
+	
 	currentKoyoteFrames = 0
 	
 	keyboard_lastkey = -1
 }
 
-var notOnGround = !place_meeting(x, y + 32, ground) or verticalVelocity > 0
+var notOnGround = !position_meeting(x, y + 32, ground) or verticalVelocity > 0
 
 if (bufferedJump and place_meeting(x + 16 * savedMovementDirection, y, ground) and !wallJumped and notOnGround){
 	verticalVelocity = baseJumpHeight * wallJumpHeightMultiplier * deltaTimeMultiplier
-	horizontalVelocity = wallJumpHorizontalSpeed * savedMovementDirection * -baseMovementSpeed
+	horizontalVelocity = wallJumpHorizontalSpeed * savedMovementDirection * -baseMovementSpeed * deltaTimeMultiplier
+	
 	savedMovementDirection *= -1
+	
 	repeat (16) {
 		instance_create_depth(x + random_range(-35, 35), y + random_range(-15, -5), 0, oSmoke)
 	}

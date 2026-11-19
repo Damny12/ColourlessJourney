@@ -11,14 +11,24 @@ baseBufferFrames = 6
 
 baseJumpHeight = -10
 wallJumpHeightMultiplier = 1.2
+wallJumpFriction = 1
 wallJumpHorizontalSpeed = 10
+
+wallJumpHeadhitMultiplier = -0.2
+
+wallBumpHorizontalMultiplier = -0.5
+wallBumpVerticalSpeed = -5
+
+highJumpVerticalMultiplier = 1.5
+highJumpHorizontalMultiplier = 1.8
 
 baseHorizontalFriction = 1.2
 stoppingThreshold = 0.6
 
 gravityStrength = 0.5
 
-terminalverticalVelocity = 10
+baseTerminalVerticalVelocity = 10
+terminalVerticalVelocity = baseTerminalVerticalVelocity
 #endregion
 
 horizontalVelocity = 0
@@ -36,10 +46,14 @@ visualXScale = 1
 visualYScale = 1
 visualAngle = 0
 
+directionStuckInWall = NaN
 savedMovementDirection = 1
 
 wallJumped = false
 wallJumpPhysics = false
+
+frames = 0
+started = false
 
 var camera = view_camera[0]
 var cameraWidth = camera_get_view_width(camera)
@@ -50,4 +64,4 @@ targetCameraY = y - cameraHeight/2
 
 camera_set_view_pos(camera, targetCameraX, targetCameraY)
 
-show_debug_log(true)
+show_debug_log(false)
