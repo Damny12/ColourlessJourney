@@ -6,7 +6,7 @@ wobbleSpeed = 20 //higher is slower
 baseMovementSpeed = 1
 inAirMovementSpeedMultiplier = 1.3
 
-baseKoyoteFrames = 10
+baseKoyoteFrames = 5
 baseBufferFrames = 6
 
 baseJumpHeight = -10
@@ -62,6 +62,14 @@ var cameraHeight = camera_get_view_height(camera)
 targetCameraX = x - cameraWidth/3
 targetCameraY = y - cameraHeight/2
 
-camera_set_view_pos(camera, targetCameraX, targetCameraY)
+defaultCameraWidth = camera_get_view_width(camera)
+defaultCameraHeight = camera_get_view_height(camera)
 
-show_debug_log(false)
+targetCameraWidth = defaultCameraWidth
+targetCameraHeight = defaultCameraHeight
+
+camera_set_view_pos(camera, targetCameraX, targetCameraY)
+camera_set_view_size(camera, targetCameraWidth, targetCameraHeight)
+
+unpausedHorizontalVelocity = 0
+unpausedVerticalVelocity = 0

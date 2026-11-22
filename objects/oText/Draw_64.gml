@@ -1,0 +1,1 @@
+draw_text_transformed_colour(x, y, text, width, height, angle, colour, colour, colour, colour, alpha)

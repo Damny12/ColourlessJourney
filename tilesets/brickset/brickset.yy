@@ -20,8 +20,8 @@
   "resourceType":"GMTileSet",
   "resourceVersion":"2.0",
   "spriteId":{
-    "name":"brick",
-    "path":"sprites/brick/brick.yy",
+    "name":"sWallSet",
+    "path":"sprites/sWallSet/sWallSet.yy",
   },
   "spriteNoExport":false,
   "textureGroupId":{

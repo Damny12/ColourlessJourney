@@ -11,8 +11,8 @@
   "name":"oPlayer",
   "overriddenProperties":[],
   "parent":{
-    "name":"Colourless Journey",
-    "path":"Colourless Journey.yyp",
+    "name":"objects",
+    "path":"folders/objects.yy",
   },
   "parentObjectId":null,
   "persistent":false,
@@ -33,12 +33,12 @@
   "resourceVersion":"2.0",
   "solid":false,
   "spriteId":{
-    "name":"sGuy",
-    "path":"sprites/sGuy/sGuy.yy",
+    "name":"sPlayer",
+    "path":"sprites/sPlayer/sPlayer.yy",
   },
   "spriteMaskId":{
-    "name":"sGuy",
-    "path":"sprites/sGuy/sGuy.yy",
+    "name":"sPlayer",
+    "path":"sprites/sPlayer/sPlayer.yy",
   },
   "visible":true,
 }

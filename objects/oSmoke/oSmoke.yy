@@ -9,8 +9,8 @@
   "name":"oSmoke",
   "overriddenProperties":[],
   "parent":{
-    "name":"Colourless Journey",
-    "path":"Colourless Journey.yyp",
+    "name":"objects",
+    "path":"folders/objects.yy",
   },
   "parentObjectId":null,
   "persistent":false,

@@ -17,24 +17,66 @@ var horizontalFriction = baseHorizontalFriction
 
 var bufferedJump = (keyboard_check_pressed(vk_space) or (keyboard_lastkey == vk_space and currentInputBufferFrames > 0)) or (keyboard_check_pressed(vk_up) or (keyboard_lastkey == vk_up and currentInputBufferFrames > 0))
 var wallJumpedThisFrame = wallJumped
+
+var currentGravity = gravityStrength
+
 if (keyboard_check_pressed(vk_anykey)){
 	currentInputBufferFrames = baseBufferFrames
 	
-	started = true
-}
-
-if (x >= 3488 and y >= 1780 and started){
-	show_debug_message(frames/60)
-	started = false
-	show_debug_log(true)
-}
-
-if (started){
-	frames += deltaTimeMultiplier
+	if (movementDirection != 0 or bufferedJump){
+		started = true
+	}
 }
 
 if (keyboard_check_pressed(ord("R"))){
 	game_restart()
+}
+
+if (!instance_exists(oDialogueBox)){
+	if (savedMovementDirection == 1){
+		targetCameraX = x - cameraWidth/3
+	}else{
+		targetCameraX = x - cameraWidth/3 * 2
+	}
+	
+	targetCameraY = y - cameraHeight/2 + verticalVelocity
+	
+	targetCameraWidth = defaultCameraWidth
+	targetCameraHeight = defaultCameraHeight
+	
+	if (!started and !targetCameraWidth == defaultCameraWidth){
+		started = true
+		
+		horizontalVelocity = unpausedHorizontalVelocity
+		verticalVelocity = unpausedVerticalVelocity
+	}
+}else{
+	targetCameraX = oDialogueBox.source.x - cameraWidth/2
+	targetCameraY = oDialogueBox.source.y - cameraHeight/2 - oDialogueBox.source.sprite_height / 2
+	
+	targetCameraWidth = defaultCameraWidth / 4
+	targetCameraHeight = defaultCameraHeight / 4
+	
+	movementDirection = 0
+	bufferedJump = false
+	
+	if (started){
+		started = false
+		
+		unpausedHorizontalVelocity = horizontalVelocity
+		unpausedVerticalVelocity = verticalVelocity
+		
+		horizontalVelocity = 0
+		verticalVelocity = 0
+	}
+	
+	currentGravity = 0
+	
+}
+
+if (x >= 3488 and y >= 1780 and started){
+	show_debug_message(frames/targetFrameRate)
+	started = false
 }
 
 if (wallJumpPhysics){
@@ -52,13 +94,9 @@ if (!place_meeting(x, y + 16, ground)){
 	movementSpeed *= inAirMovementSpeedMultiplier
 }
 
-if (savedMovementDirection == 1){
-	targetCameraX = x - cameraWidth/3
-}else{
-	targetCameraX = x - cameraWidth/3 * 2
+if (started){
+	frames += deltaTimeMultiplier
 }
-
-targetCameraY = y - cameraHeight/2 + verticalVelocity
 
 if (movementDirection != 0){
 	savedMovementDirection = movementDirection
@@ -74,7 +112,7 @@ horizontalVelocity += movementSpeed * movementDirection
 horizontalVelocity /= power(horizontalFriction, (delta_time / game_get_speed(gamespeed_microseconds)))
 
 if (!place_meeting(x, y, ground)){
-	verticalVelocity += gravityStrength * deltaTimeMultiplier
+	verticalVelocity += currentGravity * deltaTimeMultiplier
 }
 
 if (abs(verticalVelocity) > abs(terminalVerticalVelocity)){
@@ -85,13 +123,13 @@ if (abs(verticalVelocity) > abs(terminalVerticalVelocity)){
 if (abs(horizontalVelocity) <= stoppingThreshold){
 	horizontalVelocity = 0
 	
-	if (gravityStrength * deltaTimeMultiplier == verticalVelocity){
+	if (currentGravity * deltaTimeMultiplier == verticalVelocity){
 		visualAngle = lerp(visualAngle, 0, 0.1 * deltaTimeMultiplier)
 		wobbleProgress = visualAngle
 	}
 	
 } else {
-	if (gravityStrength * deltaTimeMultiplier == verticalVelocity){
+	if (currentGravity * deltaTimeMultiplier == verticalVelocity){
 		var newAngle = sin(wobbleProgress / wobbleSpeed) * maxWobbleAngle
 		if (abs(newAngle) < abs(visualAngle)){
 			totalWobbles += 1
@@ -225,5 +263,7 @@ wobbleProgress += horizontalVelocity
 currentKoyoteFrames -= deltaTimeMultiplier
 currentInputBufferFrames -= deltaTimeMultiplier
 
+
 //camera controls
 camera_set_view_pos(camera, lerp(camera_get_view_x(camera), targetCameraX, 0.05 * deltaTimeMultiplier) , lerp(camera_get_view_y(camera), targetCameraY, 0.1 * deltaTimeMultiplier))
+camera_set_view_size(camera, lerp(cameraWidth, targetCameraWidth, 0.05 * deltaTimeMultiplier), lerp(cameraHeight, targetCameraHeight, 0.05 * deltaTimeMultiplier))
