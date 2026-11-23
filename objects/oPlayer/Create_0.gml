@@ -1,3 +1,5 @@
+randomise()
+
 #region stats
 //wobble
 maxWobbleAngle = 30
@@ -29,6 +31,17 @@ gravityStrength = 0.5
 
 baseTerminalVerticalVelocity = 10
 terminalVerticalVelocity = baseTerminalVerticalVelocity
+
+finishTimerScale = 20
+finishTimerY = 40
+finishTimerX = display_get_gui_width() / 2
+finishTimerAngle = 0
+finishTimerBrightness = 0
+
+if (room == Room1){
+	trophyThresholds = [7.9, 8, 15]
+}
+
 #endregion
 
 horizontalVelocity = 0
@@ -52,8 +65,17 @@ savedMovementDirection = 1
 wallJumped = false
 wallJumpPhysics = false
 
-frames = 0
-started = false
+timerFrames = 0
+timerStarted = false
+
+finishedLevel = false
+timerStartedBefore = false
+
+timerAngle = 0
+timerScale = 2
+timerX = finishTimerX
+timerY = 20
+timerBrightness = 255
 
 var camera = view_camera[0]
 var cameraWidth = camera_get_view_width(camera)

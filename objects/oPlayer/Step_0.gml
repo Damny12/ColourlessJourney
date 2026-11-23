@@ -24,7 +24,9 @@ if (keyboard_check_pressed(vk_anykey)){
 	currentInputBufferFrames = baseBufferFrames
 	
 	if (movementDirection != 0 or bufferedJump){
-		started = true
+		timerStarted = true
+		
+		timerStartedBefore = true
 	}
 }
 
@@ -44,8 +46,8 @@ if (!instance_exists(oDialogueBox)){
 	targetCameraWidth = defaultCameraWidth
 	targetCameraHeight = defaultCameraHeight
 	
-	if (!started and !targetCameraWidth == defaultCameraWidth){
-		started = true
+	if (!timerStarted and timerStartedBefore){
+		timerStarted = true
 		
 		horizontalVelocity = unpausedHorizontalVelocity
 		verticalVelocity = unpausedVerticalVelocity
@@ -60,8 +62,8 @@ if (!instance_exists(oDialogueBox)){
 	movementDirection = 0
 	bufferedJump = false
 	
-	if (started){
-		started = false
+	if (timerStarted){
+		timerStarted = false
 		
 		unpausedHorizontalVelocity = horizontalVelocity
 		unpausedVerticalVelocity = verticalVelocity
@@ -74,10 +76,19 @@ if (!instance_exists(oDialogueBox)){
 	
 }
 
-if (x >= 3488 and y >= 1780 and started){
-	show_debug_message(frames/targetFrameRate)
-	started = false
+if (x >= 3488 and y >= 1780 and timerStarted){
+	timerStarted = false
+	finishedLevel = true
 }
+
+if (finishedLevel) {
+	timerScale = lerp(timerScale, finishTimerScale, 0.1 * deltaTimeMultiplier)
+	timerAngle = lerp(timerAngle, finishTimerAngle, 0.1 * deltaTimeMultiplier)
+	timerBrightness = lerp(timerBrightness, finishTimerBrightness, 0.1 * deltaTimeMultiplier)
+	timerY = lerp(timerY, finishTimerY, 0.1 * deltaTimeMultiplier)
+}
+
+timerX = lerp(timerX, finishTimerX, 0.1 * deltaTimeMultiplier)
 
 if (wallJumpPhysics){
 	horizontalFriction = wallJumpFriction
@@ -94,9 +105,11 @@ if (!place_meeting(x, y + 16, ground)){
 	movementSpeed *= inAirMovementSpeedMultiplier
 }
 
-if (started){
-	frames += deltaTimeMultiplier
+if (timerStarted){
+	timerFrames += deltaTimeMultiplier
 }
+
+finishTimerX = display_get_gui_width() / 2
 
 if (movementDirection != 0){
 	savedMovementDirection = movementDirection
